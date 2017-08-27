@@ -10,7 +10,14 @@ hue.bridge = "192.168.1.212";  // from hue.getBridges
 hue.username = require("./HUE_USERNAME"); // from hue.auth
 
 setInterval(() => {
-  const browser = mdns.createBrowser(mdns.tcp("googlecast"));
+  // Workaround for IPv6 bug in MDNS
+  const sequence = [
+    mdns.rst.DNSServiceResolve(),
+    "DNSServiceGetAddrInfo" in mdns.dns_sd ? mdns.rst.DNSServiceGetAddrInfo() : mdns.rst.getaddrinfo({families:[4]}),
+    mdns.rst.makeAddressesUnique()
+  ];
+
+  const browser = mdns.createBrowser(mdns.tcp("googlecast"), {resolverSequence: sequence});
   
   browser.start();
   
